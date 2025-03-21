@@ -32,6 +32,20 @@
         max-width: 100%;
         max-height: 100%;
       }
+      /* For the prices popup */
+      th {
+        background-color: #f2f2f2;
+        padding: 4px;
+        text-align: left;
+        border: 1px solid #ddd;
+      }
+      td {
+        padding: 4px;
+        border: 1px solid #ddd;
+      }
+      tr {
+        border: 1px solid #ddd;
+      }
     </style>
   </head>
 
@@ -47,6 +61,7 @@
   const defaultMapState = { center: [46.22, 6.1], zoom: 13 };
 
   const fetchLocationsPage = page => fetch(`${apiUrl}/api/v1/locations?page=${page}&size=100`).then(response => response.json());
+  const fetchLocationPrices = id => fetch(`${apiUrl}/api/v1/prices?location_id=${id}&size=100`).then(response => response.json());
   const saveLocationsToStorage = locs => locs.forEach(loc => localStorage.setItem(loc.id, JSON.stringify(loc)));
   const getLocationFromStorage = id => JSON.parse(localStorage.getItem(id));
   const getLocationsFromStorage = () => Object.keys(localStorage).map(key => JSON.parse(localStorage.getItem(key)));
@@ -68,6 +83,54 @@
     }
   }
 
+  function generateLocationInfoHTML(location) {
+    return `
+      <b>${location.osm_name || "Unknown Location"}</b><br>
+      ${location.osm_address_city || ""}
+      ${location.osm_address_city && location.osm_address_country ? ", " : ""}
+      ${location.osm_address_country || ""}<br>
+      Price Count: ${location.price_count || 0}<br>
+      Products: ${location.product_count || 0}<br>
+      Type: ${location.type || "Unknown"}<br>
+    `;
+  }
+
+  function generatePricesTableHTML(prices) {
+    if (!prices || prices.length === 0) {
+      return "<p>No prices found for this location.</p>";
+    }
+    let pricesHTML = `
+      <h4>Prices:</h4>
+      <div style="max-height:300px;overflow-y:auto;">
+        <table style="width:100%;border-collapse:collapse;font-size:12px;">
+          <thead>
+            <tr>
+              <th>Product</th>
+              <th>Product Code</th>
+              <th>Price</th>
+              <th>Category</th>
+              <th>Date</th>
+              <th>Owner</th>
+            </tr>
+          </thead>
+          <tbody>`;
+    prices.forEach(price => {
+      const isDiscounted = price.price_is_discounted
+        ? `<span style="color:red;text-decoration:line-through;">${price.price_without_discount} ${price.currency}</span>`
+        : "";
+      pricesHTML += `
+        <tr>
+          <td>${price.product_name || "N/A"}</td>
+          <td>${price.product_code || "N/A"}</td>
+          <td>${price.price} ${price.currency} ${isDiscounted}</td>
+          <td>${price.category_tag || "N/A"}</td>
+          <td>${price.date || "N/A"}</td>
+          <td>${price.owner || "N/A"}</td>
+        </tr>`;
+    });
+    return pricesHTML + `</tbody></table></div>`;
+  }
+
   // Function to add markers for locations within current bounds
   function updateMarkers(locations) {
     const bounds = map.getBounds();
@@ -76,21 +139,24 @@
       const lon = location.osm_lon;
       return lat && lon && bounds.contains(L.latLng(lat, lon));
     });
-    const markers = locationsInBounds.map(location => {
+
+    locationsInBounds.forEach(location => {
       const lat = location.osm_lat;
       const lon = location.osm_lon;
-      return L.marker([lat, lon]).bindPopup(`
-        <b>${location.osm_name || "Unknown Location"}</b><br>
-        ${location.osm_address_city || ""}${location.osm_address_city && location.osm_address_country ? ", " : ""}${
-        location.osm_address_country || ""
-      }<br>
-        Price Count: ${location.price_count || 0}<br>
-        Products: ${location.product_count || 0}<br>
-        Type: ${location.type || "Unknown"}
-      `);
+      const marker = L.marker([lat, lon]);
+
+      marker.on("click", async () => {
+        const popup = L.popup()
+          .setLatLng([lat, lon])
+          .setContent(`${generateLocationInfoHTML(location)}<p>Loading prices...</p>`)
+          .openOn(map);
+
+        const pricesData = await fetchLocationPrices(location.id);
+        popup.setContent(`${generateLocationInfoHTML(location)}${generatePricesTableHTML(pricesData.items)}`);
+      });
+
+      markersLayer.addLayer(marker);
     });
-    markersLayer.clearLayers();
-    L.featureGroup(markers).addTo(markersLayer);
   }
 
   // Function to initialize the map
