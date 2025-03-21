@@ -32,16 +32,28 @@
       }
       th {
         background-color: #f2f2f2;
-        padding: 4px;
         text-align: left;
-        border: 1px solid #ddd;
       }
-      td {
-        padding: 4px;
-        border: 1px solid #ddd;
-      }
+      td,
+      th,
       tr {
+        padding: 5px;
         border: 1px solid #ddd;
+        white-space: nowrap;
+      }
+      .leaflet-popup-content-wrapper {
+        max-width: 720px !important;
+        width: auto !important;
+        padding-right: 20px;
+      }
+      .leaflet-popup-content {
+        max-width: 700px;
+        width: 100% !important;
+        overflow-x: auto;
+      }
+      .leaflet-popup-content div {
+        max-width: calc(100% - 10px);
+        overflow-x: auto;
       }
     </style>
   </head>
@@ -101,7 +113,6 @@
             <td>${price.product_name || "N/A"}</td>
             <td>${price.product_code || "N/A"}</td>
             <td>${price.price} ${price.currency} ${isDiscounted}</td>
-            <td>${price.category_tag || "N/A"}</td>
             <td>${price.date || "N/A"}</td>
             <td>${price.owner || "N/A"}</td>
           </tr>`;
@@ -120,7 +131,6 @@
                 <th>Product</th>
                 <th>Product Code</th>
                 <th>Price</th>
-                <th>Category</th>
                 <th>Date</th>
                 <th>Owner</th>
               </tr>
