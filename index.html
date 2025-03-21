@@ -16,7 +16,10 @@
       integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
       crossorigin=""
     ></script>
-    <script src="https://unpkg.com/chroma-js@3.1.2/dist/chroma.min.cjs"></script>
+    <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
+    <link href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css" rel="stylesheet" />
+    <link href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css" rel="stylesheet" />
+    <!-- <script src="https://unpkg.com/chroma-js@3.1.2/dist/chroma.min.cjs"></script> -->
 
     <style>
       html,
@@ -90,7 +93,7 @@
   const savedMapState = getLocationFromStorage("mapState") || defaultMapState;
   const map = L.map("map").setView(savedMapState.center, savedMapState.zoom);
   const tiles = L.tileLayer(osmUrl, osmTilesOptions).addTo(map);
-  const markersLayer = L.layerGroup().addTo(map);
+  const markersLayer = L.markerClusterGroup().addTo(map);
 
   async function fetchAndSaveLocations() {
     localStorage.clear();
@@ -162,13 +165,14 @@
   }
 
   // Using chroma.js for color scale
-  function getMarkerColor(priceCount) {
-    const colorScale = chroma.scale(["#d7191c", "#fdae61", "#1a9641"]).domain([1, 20, 100]);
-    return priceCount > 0 ? colorScale(priceCount).hex() : "#666666";
-  }
+  // function getMarkerColor(priceCount) {
+  //   const colorScale = chroma.scale(["#d7191c", "#fdae61", "#1a9641"]).domain([1, 20, 100]);
+  //   return priceCount > 0 ? colorScale(priceCount).hex() : "#666666";
+  // }
 
   // Function to add markers for locations within current bounds
   function updateMarkers(locations) {
+    markersLayer.clearLayers();
     const bounds = map.getBounds();
     const locationsInBounds = locations.filter(location => {
       const lat = location.osm_lat;
@@ -182,14 +186,14 @@
       const priceCount = location.price_count || 0;
 
       // Create custom icon with color based on price count
-      const markerIcon = L.divIcon({
-        className: "marker",
-        html: `<div style="width: 10px;height: 10px;background-color:${getMarkerColor(priceCount)};"></div>`,
-        iconSize: [10, 10],
-        iconAnchor: [5, 5]
-      });
+      // const markerIcon = L.divIcon({
+      //   className: "marker",
+      //   html: `<div style="width: 10px;height: 10px;background-color:${getMarkerColor(priceCount)};"></div>`,
+      //   iconSize: [10, 10],
+      //   iconAnchor: [5, 5]
+      // });
 
-      const marker = L.marker([lat, lon], { icon: markerIcon, shadowPane: null });
+      const marker = L.marker([lat, lon]);
 
       marker.on("click", async () => {
         const popup = L.popup()
