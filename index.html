@@ -47,7 +47,7 @@
         padding-right: 20px;
       }
       .leaflet-popup-content {
-        max-width: calc(100% - 20px);
+        max-width: calc(100% - 10px);
         width: 100% !important;
         overflow-x: auto;
       }
@@ -121,7 +121,7 @@
       : "";
     return `
           <tr>
-            <td>${price.product.product_name || "N/A"}</td>
+            <td>${price.product ? price.product.product_name : "N/A" || "Unknown"}</td>
             <td>${price.product_code || "N/A"}</td>
             <td>${price.price} ${isDiscounted}</td>
             <td>${price.currency}</td>
