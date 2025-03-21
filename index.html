@@ -40,19 +40,21 @@
   </body>
 </html>
 <script>
+  const osmUrl = "https://tile.openstreetmap.org/{z}/{x}/{y}.png";
+  const osmAttribution = '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>';
+  const osmTilesOptions = { maxZoom: 19, attribution: osmAttribution };
+  const apiUrl = "https://prices.openfoodfacts.org";
+  const defaultMapState = { center: [46.22, 6.1], zoom: 13 };
+
   const fetchLocationsPage = page => fetch(`${apiUrl}/api/v1/locations?page=${page}&size=100`).then(response => response.json());
   const saveLocationsToStorage = locs => locs.forEach(loc => localStorage.setItem(loc.id, JSON.stringify(loc)));
   const getLocationFromStorage = id => JSON.parse(localStorage.getItem(id));
   const getLocationsFromStorage = () => Object.keys(localStorage).map(key => JSON.parse(localStorage.getItem(key)));
   const saveMapState = () => localStorage.setItem("mapState", JSON.stringify({ center: map.getCenter(), zoom: map.getZoom() }));
 
-  const savedMapState = getLocationFromStorage("mapState") || { center: [46.22, 6.1], zoom: 13 };
+  const savedMapState = getLocationFromStorage("mapState") || defaultMapState;
   const map = L.map("map").setView(savedMapState.center, savedMapState.zoom);
-  const osmUrl = "https://tile.openstreetmap.org/{z}/{x}/{y}.png";
-  const osmAttribution = '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>';
-  const tilesOptions = { maxZoom: 19, attribution: osmAttribution };
-  const tiles = L.tileLayer(osmUrl, tilesOptions).addTo(map);
-  const apiUrl = "https://prices.openfoodfacts.org";
+  const tiles = L.tileLayer(osmUrl, osmTilesOptions).addTo(map);
   const markersLayer = L.layerGroup().addTo(map);
 
   async function fetchAndSaveLocations() {
