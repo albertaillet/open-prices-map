@@ -42,12 +42,12 @@
         white-space: nowrap;
       }
       .leaflet-popup-content-wrapper {
-        max-width: 720px !important;
+        max-width: 1020px !important;
         width: auto !important;
         padding-right: 20px;
       }
       .leaflet-popup-content {
-        max-width: 700px;
+        max-width: 1000px;
         width: 100% !important;
         overflow-x: auto;
       }
@@ -75,6 +75,10 @@
   const getLocationFromStorage = id => JSON.parse(localStorage.getItem(id));
   const getLocationsFromStorage = () => Object.keys(localStorage).map(key => JSON.parse(localStorage.getItem(key)));
   const saveMapState = () => localStorage.setItem("mapState", JSON.stringify({ center: map.getCenter(), zoom: map.getZoom() }));
+  const formatDate = dateString => {
+    const d = new Date(dateString);
+    return `${d.getDate().toString().padStart(2, "0")}/${(d.getMonth() + 1).toString().padStart(2, "0")}/${d.getFullYear()}`;
+  };
 
   const savedMapState = getLocationFromStorage("mapState") || defaultMapState;
   const map = L.map("map").setView(savedMapState.center, savedMapState.zoom);
@@ -106,15 +110,19 @@
 
   function generatePriceRowHTML(price) {
     const isDiscounted = price.price_is_discounted
-      ? `<span style="color:red;text-decoration:line-through;">${price.price_without_discount} ${price.currency}</span>`
+      ? `<span style="color:red;text-decoration:line-through;">${price.price_without_discount}</span>`
       : "";
     return `
           <tr>
-            <td>${price.product_name || "N/A"}</td>
+            <td>${price.product.product_name || "N/A"}</td>
             <td>${price.product_code || "N/A"}</td>
-            <td>${price.price} ${price.currency} ${isDiscounted}</td>
+            <td>${price.price} ${isDiscounted}</td>
+            <td>${price.currency}</td>
             <td>${price.date || "N/A"}</td>
             <td>${price.owner || "N/A"}</td>
+            <td>${formatDate(price.created) || "N/A"}</td>
+            <td>${formatDate(price.updated) || "N/A"}</td>
+            <td>${price.owner_comment || ""}</td>
           </tr>`;
   }
 
@@ -131,8 +139,12 @@
                 <th>Product</th>
                 <th>Product Code</th>
                 <th>Price</th>
+                <th>Currency</th>
                 <th>Date</th>
                 <th>Owner</th>
+                <th>Created</th>
+                <th>Updated</th>
+                <th>Comment</th>
               </tr>
             </thead>
             <tbody>`;
@@ -198,6 +210,5 @@
     map.on("zoomend", () => updateMarkers(locations));
     map.on("zoomend", saveMapState);
   }
-
   main();
 </script>
