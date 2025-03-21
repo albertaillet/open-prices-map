@@ -76,11 +76,11 @@
   const osmUrl = "https://tile.openstreetmap.org/{z}/{x}/{y}.png";
   const osmAttribution = '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>';
   const osmTilesOptions = { maxZoom: 19, attribution: osmAttribution };
-  const apiUrl = "https://prices.openfoodfacts.org";
+  const apiUrl = "https://prices.openfoodfacts.org/api/v1";
   const defaultMapState = { center: [46.22, 6.1], zoom: 13 };
 
-  const fetchLocationsPage = page => fetch(`${apiUrl}/api/v1/locations?page=${page}&size=100`).then(response => response.json());
-  const fetchLocationPrices = id => fetch(`${apiUrl}/api/v1/prices?location_id=${id}&size=100`).then(response => response.json());
+  const fetchLocationsPage = page => fetch(`${apiUrl}/locations?page=${page}&size=100`).then(response => response.json());
+  const fetchLocationPrices = id => fetch(`${apiUrl}/prices?location_id=${id}&size=100`).then(response => response.json());
   const saveLocationsToStorage = locs => locs.forEach(loc => localStorage.setItem(loc.id, JSON.stringify(loc)));
   const getLocationFromStorage = id => JSON.parse(localStorage.getItem(id));
   const getLocationsFromStorage = () => Object.keys(localStorage).map(key => JSON.parse(localStorage.getItem(key)));
