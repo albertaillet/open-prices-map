@@ -4,9 +4,7 @@
     <base target="_top" />
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-
     <title>Open Prices Map</title>
-
     <link
       rel="stylesheet"
       href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
@@ -18,6 +16,7 @@
       integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
       crossorigin=""
     ></script>
+    <script src="https://unpkg.com/chroma-js@3.1.2/dist/chroma.min.cjs"></script>
 
     <style>
       html,
@@ -25,14 +24,12 @@
         height: 100%;
         margin: 0;
       }
-
       .leaflet-container {
         height: 100%;
         width: 100%;
         max-width: 100%;
         max-height: 100%;
       }
-      /* For the prices popup */
       th {
         background-color: #f2f2f2;
         padding: 4px;
@@ -85,14 +82,29 @@
 
   function generateLocationInfoHTML(location) {
     return `
-      <b>${location.osm_name || "Unknown Location"}</b><br>
-      ${location.osm_address_city || ""}
-      ${location.osm_address_city && location.osm_address_country ? ", " : ""}
-      ${location.osm_address_country || ""}<br>
-      Price Count: ${location.price_count || 0}<br>
-      Products: ${location.product_count || 0}<br>
-      Type: ${location.type || "Unknown"}<br>
-    `;
+        <b>${location.osm_name || "Unknown Location"}</b><br>
+        ${location.osm_address_city || ""}
+        ${location.osm_address_city && location.osm_address_country ? ", " : ""}
+        ${location.osm_address_country || ""}<br>
+        Price Count: ${location.price_count || 0}<br>
+        Products: ${location.product_count || 0}<br>
+        Type: ${location.type || "Unknown"}<br>
+      `;
+  }
+
+  function generatePriceRowHTML(price) {
+    const isDiscounted = price.price_is_discounted
+      ? `<span style="color:red;text-decoration:line-through;">${price.price_without_discount} ${price.currency}</span>`
+      : "";
+    return `
+          <tr>
+            <td>${price.product_name || "N/A"}</td>
+            <td>${price.product_code || "N/A"}</td>
+            <td>${price.price} ${price.currency} ${isDiscounted}</td>
+            <td>${price.category_tag || "N/A"}</td>
+            <td>${price.date || "N/A"}</td>
+            <td>${price.owner || "N/A"}</td>
+          </tr>`;
   }
 
   function generatePricesTableHTML(prices) {
@@ -100,35 +112,30 @@
       return "<p>No prices found for this location.</p>";
     }
     let pricesHTML = `
-      <h4>Prices:</h4>
-      <div style="max-height:300px;overflow-y:auto;">
-        <table style="width:100%;border-collapse:collapse;font-size:12px;">
-          <thead>
-            <tr>
-              <th>Product</th>
-              <th>Product Code</th>
-              <th>Price</th>
-              <th>Category</th>
-              <th>Date</th>
-              <th>Owner</th>
-            </tr>
-          </thead>
-          <tbody>`;
+        <h4>Prices:</h4>
+        <div style="max-height:300px;overflow-y:auto;">
+          <table style="width:100%;border-collapse:collapse;font-size:12px;">
+            <thead>
+              <tr>
+                <th>Product</th>
+                <th>Product Code</th>
+                <th>Price</th>
+                <th>Category</th>
+                <th>Date</th>
+                <th>Owner</th>
+              </tr>
+            </thead>
+            <tbody>`;
     prices.forEach(price => {
-      const isDiscounted = price.price_is_discounted
-        ? `<span style="color:red;text-decoration:line-through;">${price.price_without_discount} ${price.currency}</span>`
-        : "";
-      pricesHTML += `
-        <tr>
-          <td>${price.product_name || "N/A"}</td>
-          <td>${price.product_code || "N/A"}</td>
-          <td>${price.price} ${price.currency} ${isDiscounted}</td>
-          <td>${price.category_tag || "N/A"}</td>
-          <td>${price.date || "N/A"}</td>
-          <td>${price.owner || "N/A"}</td>
-        </tr>`;
+      pricesHTML += generatePriceRowHTML(price);
     });
     return pricesHTML + `</tbody></table></div>`;
+  }
+
+  // Using chroma.js for color scale
+  function getMarkerColor(priceCount) {
+    const colorScale = chroma.scale(["#d7191c", "#fdae61", "#1a9641"]).domain([1, 20, 100]);
+    return priceCount > 0 ? colorScale(priceCount).hex() : "#666666";
   }
 
   // Function to add markers for locations within current bounds
@@ -143,7 +150,17 @@
     locationsInBounds.forEach(location => {
       const lat = location.osm_lat;
       const lon = location.osm_lon;
-      const marker = L.marker([lat, lon]);
+      const priceCount = location.price_count || 0;
+
+      // Create custom icon with color based on price count
+      const markerIcon = L.divIcon({
+        className: "marker",
+        html: `<div style="width: 10px;height: 10px;background-color:${getMarkerColor(priceCount)};"></div>`,
+        iconSize: [10, 10],
+        iconAnchor: [5, 5]
+      });
+
+      const marker = L.marker([lat, lon], { icon: markerIcon, shadowPane: null });
 
       marker.on("click", async () => {
         const popup = L.popup()
