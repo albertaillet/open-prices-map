@@ -5,9 +5,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Quick Start - Leaflet</title>
-
-    <link rel="shortcut icon" type="image/x-icon" href="docs/images/favicon.ico" />
+    <title>Open Prices Map</title>
 
     <link
       rel="stylesheet"
@@ -42,58 +40,69 @@
   </body>
 </html>
 <script>
-  const map = L.map("map").setView([51.505, -0.09], 13);
+  const fetchLocationsPage = page => fetch(`${apiUrl}/api/v1/locations?page=${page}&size=100`).then(response => response.json());
+  const saveLocationsToStorage = locs => locs.forEach(loc => localStorage.setItem(loc.id, JSON.stringify(loc)));
+  const getLocationFromStorage = id => JSON.parse(localStorage.getItem(id));
+  const getLocationsFromStorage = () => Object.keys(localStorage).map(key => JSON.parse(localStorage.getItem(key)));
+  const saveMapState = () => localStorage.setItem("mapState", JSON.stringify({ center: map.getCenter(), zoom: map.getZoom() }));
+
+  const savedMapState = getLocationFromStorage("mapState") || { center: [46.22, 6.1], zoom: 13 };
+  const map = L.map("map").setView(savedMapState.center, savedMapState.zoom);
   const osmUrl = "https://tile.openstreetmap.org/{z}/{x}/{y}.png";
   const osmAttribution = '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>';
   const tilesOptions = { maxZoom: 19, attribution: osmAttribution };
   const tiles = L.tileLayer(osmUrl, tilesOptions).addTo(map);
   const apiUrl = "https://prices.openfoodfacts.org";
-
-  const fetchLocationsPage = page => fetch(`${apiUrl}/api/v1/locations?page=${page}&size=100`).then(response => response.json());
-  const saveLocationsToStorage = locs => locs.forEach(loc => localStorage.setItem(loc.id, JSON.stringify(loc)));
-  const getLocationFromStorage = id => JSON.parse(localStorage.getItem(id));
-  const getLocationsFromStorage = () => Object.keys(localStorage).map(key => JSON.parse(localStorage.getItem(key)));
+  const markersLayer = L.layerGroup().addTo(map);
 
   async function fetchAndSaveLocations() {
     localStorage.clear();
     const response = await fetchLocationsPage(1);
-    let locations = response.items;
-    saveLocationsToStorage(locations);
+    saveLocationsToStorage(response.items);
     for (let i = 2; i <= response.pages; i++) {
       const response = await fetchLocationsPage(i);
       if (response.items.length === 0) break;
       saveLocationsToStorage(response.items);
-      locations = locations.concat(response.items);
     }
-    return locations;
   }
 
-  // Function to add markers for each location
-  function addLocationMarkers(locations) {
-    locations.forEach(location => {
+  // Function to add markers for locations within current bounds
+  function updateMarkers(locations) {
+    const bounds = map.getBounds();
+    const locationsInBounds = locations.filter(location => {
       const lat = location.osm_lat;
       const lon = location.osm_lon;
-      if (lat && lon) {
-        L.marker([lat, lon]).addTo(map).bindPopup(`
-            <b>${location.osm_name || "Unknown Location"}</b><br>
-            ${location.osm_address_city || ""}${location.osm_address_city && location.osm_address_country ? ", " : ""}${
-          location.osm_address_country || ""
-        }<br>
-            Price Count: ${location.price_count || 0}<br>
-            Products: ${location.product_count || 0}<br>
-            Type: ${location.type || "Unknown"}
-          `);
-      }
+      return lat && lon && bounds.contains(L.latLng(lat, lon));
     });
+    const markers = locationsInBounds.map(location => {
+      const lat = location.osm_lat;
+      const lon = location.osm_lon;
+      return L.marker([lat, lon]).bindPopup(`
+        <b>${location.osm_name || "Unknown Location"}</b><br>
+        ${location.osm_address_city || ""}${location.osm_address_city && location.osm_address_country ? ", " : ""}${
+        location.osm_address_country || ""
+      }<br>
+        Price Count: ${location.price_count || 0}<br>
+        Products: ${location.product_count || 0}<br>
+        Type: ${location.type || "Unknown"}
+      `);
+    });
+    markersLayer.clearLayers();
+    L.featureGroup(markers).addTo(markersLayer);
   }
+
   // Function to initialize the map
-  async function initMap() {
-    const locations = getLocationsFromStorage();
-    if (locations.length === 0) {
-      const locations = await fetchAndSaveLocations();
+  async function main() {
+    if (localStorage.length === 0) {
+      await fetchAndSaveLocations();
     }
-    addLocationMarkers(locations);
+    const locations = getLocationsFromStorage();
+    updateMarkers(locations);
+    map.on("moveend", () => updateMarkers(locations));
+    map.on("moveend", saveMapState);
+    map.on("zoomend", () => updateMarkers(locations));
+    map.on("zoomend", saveMapState);
   }
-  // Initialize the map
-  initMap();
+
+  main();
 </script>
