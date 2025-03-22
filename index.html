@@ -18,8 +18,7 @@
     ></script>
     <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
     <link href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css" rel="stylesheet" />
-    <link href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css" rel="stylesheet" />
-    <!-- <script src="https://unpkg.com/chroma-js@3.1.2/dist/chroma.min.cjs"></script> -->
+    <script src="https://unpkg.com/chroma-js@3.1.2/dist/chroma.min.cjs"></script>
 
     <style>
       html,
@@ -65,6 +64,36 @@
         border-collapse: collapse;
         font-size: 12px;
       }
+      .custom-marker {
+        background-clip: padding-box;
+        border-radius: 20px;
+        text-align: center;
+        font-family: "Helvetica Neue", Arial, Helvetica, sans-serif;
+        background-color: rgb(113, 113, 113);
+      }
+
+      .custom-marker div {
+        width: 36px;
+        height: 36px;
+        margin-left: 2px;
+        margin-top: 2px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        border-radius: 18px;
+      }
+
+      .custom-marker .marker-count {
+        font-size: 12px;
+        font-weight: bold;
+        line-height: 1;
+        margin-bottom: 1px;
+      }
+
+      .custom-marker .price-count {
+        font-size: 10px;
+        line-height: 1;
+      }
     </style>
   </head>
 
@@ -78,6 +107,12 @@
   const osmTilesOptions = { maxZoom: 19, attribution: osmAttribution };
   const apiUrl = "https://prices.openfoodfacts.org/api/v1";
   const defaultMapState = { center: [46.22, 6.1], zoom: 13 };
+  const markerClusterGroupOptions = {
+    showCoverageOnHover: false,
+    spiderfyOnMaxZoom: false,
+    removeOutsideVisibleBounds: true,
+    iconCreateFunction: iconCreateFunction
+  };
 
   const fetchLocationsPage = page => fetch(`${apiUrl}/locations?page=${page}&size=100`).then(response => response.json());
   const fetchLocationPrices = id => fetch(`${apiUrl}/prices?location_id=${id}&size=100`).then(response => response.json());
@@ -93,7 +128,7 @@
   const savedMapState = getLocationFromStorage("mapState") || defaultMapState;
   const map = L.map("map").setView(savedMapState.center, savedMapState.zoom);
   const tiles = L.tileLayer(osmUrl, osmTilesOptions).addTo(map);
-  const markersLayer = L.markerClusterGroup().addTo(map);
+  const markersLayer = L.markerClusterGroup(markerClusterGroupOptions).addTo(map);
 
   async function fetchAndSaveLocations() {
     localStorage.clear();
@@ -164,37 +199,42 @@
     return pricesHTML + `</tbody></table></div>`;
   }
 
-  // Using chroma.js for color scale
-  // function getMarkerColor(priceCount) {
-  //   const colorScale = chroma.scale(["#d7191c", "#fdae61", "#1a9641"]).domain([1, 20, 100]);
-  //   return priceCount > 0 ? colorScale(priceCount).hex() : "#666666";
-  // }
+  function getMarkerColor(markerCount, priceCount) {
+    const ratio = priceCount / markerCount;
+    const colorScale = chroma.scale("RdYlGn").padding(0.15).domain([0, 50]);
+    return ratio > 0 ? colorScale(ratio).hex() : "#666666";
+  }
 
-  // Function to add markers for locations within current bounds
-  function updateMarkers(locations) {
-    markersLayer.clearLayers();
-    const bounds = map.getBounds();
-    const locationsInBounds = locations.filter(location => {
-      const lat = location.osm_lat;
-      const lon = location.osm_lon;
-      return lat && lon && bounds.contains(L.latLng(lat, lon));
+  function iconCreateFunction(cluster) {
+    const markers = cluster.getAllChildMarkers();
+    const markerCount = markers.length;
+    const priceCount = markers.reduce((sum, marker) => sum + (marker.options.price_count || 0), 0);
+    return makeIcon(markerCount, priceCount);
+  }
+
+  function makeIcon(markerCount, priceCount) {
+    const className = "custom-marker";
+    const html = `<div style="background-color:${getMarkerColor(markerCount, priceCount)};">
+      <span class="marker-count">${markerCount}</span>
+      <span class="price-count">${priceCount}</span>
+      </div>`;
+    return L.divIcon({
+      className: "custom-marker",
+      html: html,
+      iconSize: L.point(40, 40),
+      iconAnchor: L.point(20, 20),
+      popupAnchor: L.point(0, -20)
     });
+  }
 
-    locationsInBounds.forEach(location => {
+  function createMarkers(locations) {
+    markersLayer.clearLayers();
+    locations.forEach(location => {
       const lat = location.osm_lat;
       const lon = location.osm_lon;
+      if (!lat || !lon) return;
       const priceCount = location.price_count || 0;
-
-      // Create custom icon with color based on price count
-      // const markerIcon = L.divIcon({
-      //   className: "marker",
-      //   html: `<div style="width: 10px;height: 10px;background-color:${getMarkerColor(priceCount)};"></div>`,
-      //   iconSize: [10, 10],
-      //   iconAnchor: [5, 5]
-      // });
-
-      const marker = L.marker([lat, lon]);
-
+      const marker = L.marker([lat, lon], { icon: makeIcon(1, priceCount), price_count: priceCount });
       marker.on("click", async () => {
         const popup = L.popup()
           .setLatLng([lat, lon])
@@ -204,21 +244,17 @@
         const pricesData = await fetchLocationPrices(location.id);
         popup.setContent(`${generateLocationInfoHTML(location)}${generatePricesTableHTML(pricesData.items)}`);
       });
-
       markersLayer.addLayer(marker);
     });
   }
 
-  // Function to initialize the map
   async function main() {
     if (localStorage.length === 0) {
       await fetchAndSaveLocations();
     }
     const locations = getLocationsFromStorage();
-    updateMarkers(locations);
-    map.on("moveend", () => updateMarkers(locations));
+    createMarkers(locations);
     map.on("moveend", saveMapState);
-    map.on("zoomend", () => updateMarkers(locations));
     map.on("zoomend", saveMapState);
   }
   main();
