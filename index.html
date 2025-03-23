@@ -35,6 +35,49 @@
   </head>
   <body>
     <div id="map" style="width: 100%; height: 100%"></div>
+    <div id="info-button" style="position: absolute; top: 10px; right: 10px; z-index: 1000">
+      <button
+        onclick="openInfoModal()"
+        style="padding: 6px 12px; cursor: pointer; background-color: white; border: 1px solid #ccc; border-radius: 4px"
+      >
+        <span style="font-weight: bold">i</span>
+      </button>
+    </div>
+
+    <div id="info-modal">
+      <div class="leaflet-popup">
+        <div class="leaflet-popup-content-wrapper">
+          <div class="leaflet-popup-content">
+            <h3>Map Information</h3>
+            <p>The icons on this map represent food price locations:</p>
+            <ul style="list-style-type: disc">
+              <li><strong>Top number</strong>: Number of locations in this cluster</li>
+              <li><strong>Bottom number</strong>: Total number of price entries in this cluster</li>
+            </ul>
+            <p>The colors of the icons represent the ratio of price entries to locations in the cluster.</p>
+            <p>
+              The data is sourced from the <a href="https://prices.openfoodfacts.org/api/docs">Open Prices API</a>, an Open Food
+              Facts project.
+            </p>
+            <p>The map is powered by <a href="https://leafletjs.com/">Leaflet</a>, a JavaScript library for interactive maps.</p>
+            <p>
+              The map tiles are provided by <a href="https://openstreetmap.org/">OpenStreetMap</a>, a collaborative mapping
+              project.
+            </p>
+            <p>
+              The marker clustering is handled by
+              <a href="https://github.com/Leaflet/Leaflet.markercluster">Leaflet.markercluster</a>, a plugin for Leaflet that adds
+              clustering functionality.
+            </p>
+            <button onclick="main(true)">Reload All Location Data from API</button>
+          </div>
+
+          <a class="leaflet-popup-close-button" role="button" aria-label="Close popup" href="#close" onclick="closeInfoModal()">
+            <span aria-hidden="true">×</span>
+          </a>
+        </div>
+      </div>
+    </div>
   </body>
 </html>
 <style>
@@ -42,6 +85,8 @@
   body {
     height: 100%;
     margin: 0;
+    /* From leaflet.css */
+    font-family: "Helvetica Neue", Arial, Helvetica, sans-serif;
   }
   .leaflet-container {
     height: 100%;
@@ -85,10 +130,8 @@
     background-clip: padding-box;
     border-radius: 20px;
     text-align: center;
-    font-family: "Helvetica Neue", Arial, Helvetica, sans-serif;
     background-color: rgb(115, 115, 130);
   }
-
   .custom-marker div {
     width: 36px;
     height: 36px;
@@ -99,17 +142,47 @@
     justify-content: center;
     border-radius: 18px;
   }
-
   .custom-marker .marker-count {
     font-size: 12px;
     font-weight: bold;
     line-height: 1;
     margin-bottom: 1px;
   }
-
   .custom-marker .price-count {
     font-size: 10px;
     line-height: 1;
+  }
+  #info-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 2000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: medium;
+  }
+  /* From https://unpkg.com/leaflet@1.9.4/dist/leaflet.css */
+  a.leaflet-popup-close-button {
+    position: absolute;
+    top: 0;
+    right: 0;
+    border: none;
+    text-align: center;
+    width: 24px;
+    height: 24px;
+    font: 16px/24px Tahoma, Verdana, sans-serif;
+    color: #757575;
+    text-decoration: none;
+    background: transparent;
+  }
+  a.leaflet-popup-close-button:hover,
+  a.leaflet-popup-close-button:focus {
+    color: #585858;
   }
 </style>
 <script>
@@ -124,6 +197,14 @@
     removeOutsideVisibleBounds: true,
     iconCreateFunction: iconCreateFunction
   };
+
+  function openInfoModal() {
+    document.getElementById("info-modal").style.display = "flex";
+  }
+
+  function closeInfoModal() {
+    document.getElementById("info-modal").style.display = "none";
+  }
 
   const fetchLocationsPage = page => fetch(`${apiUrl}/locations?page=${page}&size=100`).then(response => response.json());
   const fetchLocationPrices = id => fetch(`${apiUrl}/prices?location_id=${id}&size=100`).then(response => response.json());
@@ -259,8 +340,9 @@
     });
   }
 
-  async function main() {
-    if (localStorage.length === 0) {
+  async function main(reload) {
+    if (localStorage.length === 0 || reload) {
+      localStorage.clear();
       await fetchAndSaveLocations();
     }
     const locations = getLocationsFromStorage();
@@ -269,4 +351,12 @@
     map.on("zoomend", saveMapState);
   }
   main();
+
+  // Close modal when clicking outside of it
+  window.onclick = function (event) {
+    const modal = document.getElementById("info-modal");
+    if (event.target === modal) {
+      modal.style.display = "none";
+    }
+  };
 </script>
