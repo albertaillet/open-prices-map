@@ -267,7 +267,7 @@
     return `
           <tr>
             <td>${price.product ? price.product.product_name : "N/A" || "Unknown"}</td>
-            <td><a href="${offUrl}${price.product.code}" target="_blank">${price.product_code || "N/A"}</a></td>
+            <td><a href="${offUrl}${price.product_code || "N/A"}" target="_blank">${price.product_code || "N/A"}</a></td>
             <td><a href="${pricesUrl}prices/${price.id}" target="_blank">${price.price} ${isDiscounted}</a></td>
             <td>${price.currency}</td>
             <td>${price.date || "N/A"}</td>
