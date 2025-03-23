@@ -56,20 +56,32 @@
               <li><strong>Bottom number</strong>: Total number of price entries in this cluster</li>
             </ul>
             <p>The colors of the icons represent the ratio of price entries to locations in the cluster.</p>
-            <p>
+            <b>How to use this map:</b>
+            <ul style="list-style-type: disc">
+              <li>Click and drag to move the map.</li>
+              <li>Use the mouse wheel or pinch to zoom in and out.</li>
+              <li>Click on a cluster with multiple locations to zoom in and view the individual locations.</li>
+              <li>Click on a cluster with one location to view a <b>table of prices</b> for that location.</li>
+              <li>Click on the "Map Information" button to view this information.</li>
+              <li>Click on the "Reload All Location Data from API" button in this modal to refresh the data.</li>
+            </ul>
+            <div>
               The data is sourced from the <a href="https://prices.openfoodfacts.org/api/docs">Open Prices API</a>, an Open Food
               Facts project.
-            </p>
-            <p>The map is powered by <a href="https://leafletjs.com/">Leaflet</a>, a JavaScript library for interactive maps.</p>
-            <p>
+            </div>
+            <div>
+              The map is powered by <a href="https://leafletjs.com/">Leaflet</a>, a JavaScript library for interactive maps.
+            </div>
+            <div>
               The map tiles are provided by <a href="https://openstreetmap.org/">OpenStreetMap</a>, a collaborative mapping
               project.
-            </p>
-            <p>
+            </div>
+            <div>
               The marker clustering is handled by
               <a href="https://github.com/Leaflet/Leaflet.markercluster">Leaflet.markercluster</a>, a plugin for Leaflet that adds
               clustering functionality.
-            </p>
+            </div>
+            <p></p>
             <button onclick="main(true)">Reload All Location Data from API</button>
           </div>
 
