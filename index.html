@@ -270,11 +270,9 @@
             <td><a href="${offUrl}${price.product_code || "N/A"}" target="_blank">${price.product_code || "N/A"}</a></td>
             <td><a href="${pricesUrl}prices/${price.id}" target="_blank">${price.price} ${isDiscounted}</a></td>
             <td>${price.currency}</td>
-            <td>${price.date || "N/A"}</td>
             <td><a href="${pricesUrl}users/${price.owner}" target="_blank">${price.owner || "N/A"}</a></td>
             <td>${formatDate(price.created) || "N/A"}</td>
             <td>${formatDate(price.updated) || "N/A"}</td>
-            <td>${price.owner_comment || ""}</td>
           </tr>`;
   }
 
@@ -292,11 +290,9 @@
                 <th>Product Code</th>
                 <th>Price</th>
                 <th>Currency</th>
-                <th>Date</th>
                 <th>Owner</th>
                 <th>Created</th>
                 <th>Updated</th>
-                <th>Comment</th>
               </tr>
             </thead>
             <tbody>`;
