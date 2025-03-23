@@ -203,6 +203,8 @@
   const osmAttribution = '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>';
   const osmTilesOptions = { maxZoom: 19, attribution: osmAttribution };
   const apiUrl = "https://prices.openfoodfacts.org/api/v1";
+  const offUrl = "https://world.openfoodfacts.org/product/";
+  const pricesUrl = "https://prices.openfoodfacts.org/";
   const defaultMapState = { center: [49, 10], zoom: 5 };
   const markerClusterGroupOptions = {
     showCoverageOnHover: false,
@@ -253,6 +255,8 @@
         Price Count: ${location.price_count || 0}<br>
         Products: ${location.product_count || 0}<br>
         Type: ${location.type || "Unknown"}<br>
+        Location ID: ${location.id}<br>
+        <a href="https://prices.openfoodfacts.org/locations/${location.id}" target="_blank">View on Open Prices</a><br>
       `;
   }
 
@@ -263,11 +267,11 @@
     return `
           <tr>
             <td>${price.product ? price.product.product_name : "N/A" || "Unknown"}</td>
-            <td>${price.product_code || "N/A"}</td>
-            <td>${price.price} ${isDiscounted}</td>
+            <td><a href="${offUrl}${price.product.code}" target="_blank">${price.product_code || "N/A"}</a></td>
+            <td><a href="${pricesUrl}prices/${price.id}" target="_blank">${price.price} ${isDiscounted}</a></td>
             <td>${price.currency}</td>
             <td>${price.date || "N/A"}</td>
-            <td>${price.owner || "N/A"}</td>
+            <td><a href="${pricesUrl}users/${price.owner}" target="_blank">${price.owner || "N/A"}</a></td>
             <td>${formatDate(price.created) || "N/A"}</td>
             <td>${formatDate(price.updated) || "N/A"}</td>
             <td>${price.owner_comment || ""}</td>
