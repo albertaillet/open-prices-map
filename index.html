@@ -222,9 +222,11 @@
 
   const fetchLocationsPage = page => fetch(`${apiUrl}/locations?page=${page}&size=100`).then(response => response.json());
   const fetchLocationPrices = id => fetch(`${apiUrl}/prices?location_id=${id}&size=100`).then(response => response.json());
-  const saveLocationsToStorage = locs => locs.forEach(loc => localStorage.setItem(loc.id, JSON.stringify(loc)));
-  const getLocationFromStorage = id => JSON.parse(localStorage.getItem(id));
-  const getLocationsFromStorage = () => Object.keys(localStorage).map(key => JSON.parse(localStorage.getItem(key)));
+  const saveLocationsToStorage = locs => locs.forEach(loc => localStorage.setItem(`location/${loc.id}`, JSON.stringify(loc)));
+  const getLocationFromStorage = id => JSON.parse(localStorage.getItem(`location/${id}`));
+  const getLocationKeys = () => Object.keys(localStorage).filter(key => key.startsWith("location/"));
+  const getLocationsFromStorage = () => getLocationKeys().map(key => JSON.parse(localStorage.getItem(key)));
+  const clearLocationsFromStorage = () => getLocationKeys().forEach(key => localStorage.removeItem(key));
   const saveMapState = () => localStorage.setItem("mapState", JSON.stringify({ center: map.getCenter(), zoom: map.getZoom() }));
   const formatDate = dateString => {
     if (!dateString) return "N/A";
@@ -238,7 +240,7 @@
   const markersLayer = L.markerClusterGroup(markerClusterGroupOptions).addTo(map);
 
   async function fetchAndSaveLocations() {
-    localStorage.clear();
+    clearLocationsFromStorage();
     const response = await fetchLocationsPage(1);
     saveLocationsToStorage(response.items);
     for (let i = 2; i <= response.pages; i++) {
@@ -355,7 +357,7 @@
 
   async function main(reload) {
     if (localStorage.length === 0 || reload) {
-      localStorage.clear();
+      clearLocationsFromStorage();
       await fetchAndSaveLocations();
     }
     const locations = getLocationsFromStorage();
