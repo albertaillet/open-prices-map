@@ -91,169 +91,168 @@
         </div>
       </div>
     </div>
-  </body>
-</html>
-<style>
-  html,
-  body {
-    height: 100%;
-    margin: 0;
-    /* From leaflet.css */
-    font-family: "Helvetica Neue", Arial, Helvetica, sans-serif;
-  }
-  .leaflet-container {
-    height: 100%;
-    width: 100%;
-    max-width: 100%;
-    max-height: 100%;
-  }
-  th {
-    background-color: #f2f2f2;
-    text-align: left;
-  }
-  td,
-  th,
-  tr {
-    padding: 5px;
-    border: 1px solid #ddd;
-    white-space: nowrap;
-  }
-  .leaflet-popup-content-wrapper {
-    max-width: 90vw;
-    width: auto !important;
-    padding-right: 20px;
-    max-height: 75vh;
-    overflow-y: auto;
-  }
-  .leaflet-popup-content {
-    max-width: calc(100% - 10px);
-    width: 100% !important;
-    overflow-x: auto;
-  }
-  .leaflet-popup-content div {
-    max-width: calc(100% - 10px);
-    overflow-x: auto;
-    overflow-y: auto;
-    max-height: 300px;
-  }
-  .leaflet-popup-content div table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 12px;
-  }
-  .custom-marker {
-    background-clip: padding-box;
-    border-radius: 20px;
-    text-align: center;
-    background-color: rgb(115, 115, 130);
-  }
-  .custom-marker div {
-    width: 36px;
-    height: 36px;
-    margin-left: 2px;
-    margin-top: 2px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    border-radius: 18px;
-  }
-  .custom-marker .marker-count {
-    font-size: 12px;
-    font-weight: bold;
-    line-height: 1;
-    margin-bottom: 1px;
-  }
-  .custom-marker .price-count {
-    font-size: 10px;
-    line-height: 1;
-  }
-  #info-modal {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
-    z-index: 2000;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-size: medium;
-  }
-  /* From https://unpkg.com/leaflet@1.9.4/dist/leaflet.css */
-  a.leaflet-popup-close-button {
-    position: absolute;
-    top: 0;
-    right: 0;
-    border: none;
-    text-align: center;
-    width: 24px;
-    height: 24px;
-    font: 16px/24px Tahoma, Verdana, sans-serif;
-    color: #757575;
-    text-decoration: none;
-    background: transparent;
-  }
-  a.leaflet-popup-close-button:hover,
-  a.leaflet-popup-close-button:focus {
-    color: #585858;
-  }
-</style>
-<script>
-  const osmUrl = "https://tile.openstreetmap.org/{z}/{x}/{y}.png";
-  const osmAttribution = '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>';
-  const osmTilesOptions = { maxZoom: 19, attribution: osmAttribution };
-  const apiUrl = "https://prices.openfoodfacts.org/api/v1";
-  const offUrl = "https://world.openfoodfacts.org/product/";
-  const pricesUrl = "https://prices.openfoodfacts.org/";
-  const defaultMapState = { center: [49, 10], zoom: 5 };
-  const markerClusterGroupOptions = {
-    showCoverageOnHover: false,
-    spiderfyOnMaxZoom: false,
-    removeOutsideVisibleBounds: true,
-    iconCreateFunction: iconCreateFunction,
-    disableClusteringAtZoom: 15
-  };
+    <style>
+      html,
+      body {
+        height: 100%;
+        margin: 0;
+        /* From leaflet.css */
+        font-family: "Helvetica Neue", Arial, Helvetica, sans-serif;
+      }
+      .leaflet-container {
+        height: 100%;
+        width: 100%;
+        max-width: 100%;
+        max-height: 100%;
+      }
+      th {
+        background-color: #f2f2f2;
+        text-align: left;
+      }
+      td,
+      th,
+      tr {
+        padding: 5px;
+        border: 1px solid #ddd;
+        white-space: nowrap;
+      }
+      .leaflet-popup-content-wrapper {
+        max-width: 90vw;
+        width: auto !important;
+        padding-right: 20px;
+        max-height: 75vh;
+        overflow-y: auto;
+      }
+      .leaflet-popup-content {
+        max-width: calc(100% - 10px);
+        width: 100% !important;
+        overflow-x: auto;
+      }
+      .leaflet-popup-content div {
+        max-width: calc(100% - 10px);
+        overflow-x: auto;
+        overflow-y: auto;
+        max-height: 300px;
+      }
+      .leaflet-popup-content div table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 12px;
+      }
+      .custom-marker {
+        background-clip: padding-box;
+        border-radius: 20px;
+        text-align: center;
+        background-color: rgb(115, 115, 130);
+      }
+      .custom-marker div {
+        width: 36px;
+        height: 36px;
+        margin-left: 2px;
+        margin-top: 2px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        border-radius: 18px;
+      }
+      .custom-marker .marker-count {
+        font-size: 12px;
+        font-weight: bold;
+        line-height: 1;
+        margin-bottom: 1px;
+      }
+      .custom-marker .price-count {
+        font-size: 10px;
+        line-height: 1;
+      }
+      #info-modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 2000;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: medium;
+      }
+      /* From https://unpkg.com/leaflet@1.9.4/dist/leaflet.css */
+      a.leaflet-popup-close-button {
+        position: absolute;
+        top: 0;
+        right: 0;
+        border: none;
+        text-align: center;
+        width: 24px;
+        height: 24px;
+        font: 16px/24px Tahoma, Verdana, sans-serif;
+        color: #757575;
+        text-decoration: none;
+        background: transparent;
+      }
+      a.leaflet-popup-close-button:hover,
+      a.leaflet-popup-close-button:focus {
+        color: #585858;
+      }
+    </style>
+    <script>
+      const osmUrl = "https://tile.openstreetmap.org/{z}/{x}/{y}.png";
+      const osmAttribution = '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>';
+      const osmTilesOptions = { maxZoom: 19, attribution: osmAttribution };
+      const apiUrl = "https://prices.openfoodfacts.org/api/v1";
+      const offUrl = "https://world.openfoodfacts.org/product/";
+      const pricesUrl = "https://prices.openfoodfacts.org/";
+      const defaultMapState = { center: [49, 10], zoom: 5 };
+      const markerClusterGroupOptions = {
+        showCoverageOnHover: false,
+        spiderfyOnMaxZoom: false,
+        removeOutsideVisibleBounds: true,
+        iconCreateFunction: iconCreateFunction,
+        disableClusteringAtZoom: 15
+      };
 
-  const openInfoModal = () => (document.getElementById("info-modal").style.display = "flex");
-  function closeInfoModal() {
-    localStorage.setItem("viewedInfoModal", "true");
-    document.getElementById("info-modal").style.display = "none";
-  }
+      const openInfoModal = () => (document.getElementById("info-modal").style.display = "flex");
+      function closeInfoModal() {
+        localStorage.setItem("viewedInfoModal", "true");
+        document.getElementById("info-modal").style.display = "none";
+      }
 
-  const fetchLocationsPage = page => fetch(`${apiUrl}/locations?page=${page}&size=100`).then(response => response.json());
-  const fetchLocationPrices = id => fetch(`${apiUrl}/prices?location_id=${id}&size=100`).then(response => response.json());
-  const saveLocationsToStorage = locs => locs.forEach(loc => localStorage.setItem(`location/${loc.id}`, JSON.stringify(loc)));
-  const getLocationFromStorage = id => JSON.parse(localStorage.getItem(`location/${id}`));
-  const getLocationKeys = () => Object.keys(localStorage).filter(key => key.startsWith("location/"));
-  const getLocationsFromStorage = () => getLocationKeys().map(key => JSON.parse(localStorage.getItem(key)));
-  const clearLocationsFromStorage = () => getLocationKeys().forEach(key => localStorage.removeItem(key));
-  const saveMapState = () => localStorage.setItem("mapState", JSON.stringify({ center: map.getCenter(), zoom: map.getZoom() }));
-  const formatDate = dateString => {
-    if (!dateString) return "N/A";
-    const d = new Date(dateString);
-    return `${d.getDate().toString().padStart(2, "0")}/${(d.getMonth() + 1).toString().padStart(2, "0")}/${d.getFullYear()}`;
-  };
+      const fetchLocationsPage = page => fetch(`${apiUrl}/locations?page=${page}&size=100`).then(response => response.json());
+      const fetchLocationPrices = id => fetch(`${apiUrl}/prices?location_id=${id}&size=100`).then(response => response.json());
+      const saveLocationsToStorage = locs => locs.forEach(loc => localStorage.setItem(`location/${loc.id}`, JSON.stringify(loc)));
+      const getLocationFromStorage = id => JSON.parse(localStorage.getItem(`location/${id}`));
+      const getLocationKeys = () => Object.keys(localStorage).filter(key => key.startsWith("location/"));
+      const getLocationsFromStorage = () => getLocationKeys().map(key => JSON.parse(localStorage.getItem(key)));
+      const clearLocationsFromStorage = () => getLocationKeys().forEach(key => localStorage.removeItem(key));
+      const saveMapState = () =>
+        localStorage.setItem("mapState", JSON.stringify({ center: map.getCenter(), zoom: map.getZoom() }));
+      const formatDate = dateString => {
+        if (!dateString) return "N/A";
+        const d = new Date(dateString);
+        return `${d.getDate().toString().padStart(2, "0")}/${(d.getMonth() + 1).toString().padStart(2, "0")}/${d.getFullYear()}`;
+      };
 
-  const savedMapState = getLocationFromStorage("mapState") || defaultMapState;
-  const map = L.map("map").setView(savedMapState.center, savedMapState.zoom);
-  const tiles = L.tileLayer(osmUrl, osmTilesOptions).addTo(map);
-  const markersLayer = L.markerClusterGroup(markerClusterGroupOptions).addTo(map);
+      const savedMapState = getLocationFromStorage("mapState") || defaultMapState;
+      const map = L.map("map").setView(savedMapState.center, savedMapState.zoom);
+      const tiles = L.tileLayer(osmUrl, osmTilesOptions).addTo(map);
+      const markersLayer = L.markerClusterGroup(markerClusterGroupOptions).addTo(map);
 
-  async function fetchAndSaveLocations() {
-    clearLocationsFromStorage();
-    const response = await fetchLocationsPage(1);
-    saveLocationsToStorage(response.items);
-    for (let i = 2; i <= response.pages; i++) {
-      const response = await fetchLocationsPage(i);
-      if (response.items.length === 0) break;
-      saveLocationsToStorage(response.items);
-    }
-  }
+      async function fetchAndSaveLocations() {
+        clearLocationsFromStorage();
+        const response = await fetchLocationsPage(1);
+        saveLocationsToStorage(response.items);
+        for (let i = 2; i <= response.pages; i++) {
+          const response = await fetchLocationsPage(i);
+          if (response.items.length === 0) break;
+          saveLocationsToStorage(response.items);
+        }
+      }
 
-  function generateLocationInfoHTML(location) {
-    return `
+      function generateLocationInfoHTML(location) {
+        return `
         <b>${location.osm_name || "Unknown Location"}</b><br>
         ${location.osm_address_city || ""}
         ${location.osm_address_city && location.osm_address_country ? ", " : ""}
@@ -264,13 +263,13 @@
         Location ID: ${location.id}<br>
         <a href="https://prices.openfoodfacts.org/locations/${location.id}" target="_blank">View on Open Prices</a><br>
       `;
-  }
+      }
 
-  function generatePriceRowHTML(price) {
-    const isDiscounted = price.price_is_discounted
-      ? `<span style="color:red;text-decoration:line-through;">${price.price_without_discount}</span>`
-      : "";
-    return `
+      function generatePriceRowHTML(price) {
+        const isDiscounted = price.price_is_discounted
+          ? `<span style="color:red;text-decoration:line-through;">${price.price_without_discount}</span>`
+          : "";
+        return `
           <tr>
             <td>${price.product ? price.product.product_name : "N/A" || "Unknown"}</td>
             <td><a href="${offUrl}${price.product_code || "N/A"}" target="_blank">${price.product_code || "N/A"}</a></td>
@@ -280,13 +279,13 @@
             <td>${formatDate(price.created) || "N/A"}</td>
             <td>${formatDate(price.updated) || "N/A"}</td>
           </tr>`;
-  }
+      }
 
-  function generatePricesTableHTML(prices) {
-    if (!prices || prices.length === 0) {
-      return "<p>No prices found for this location.</p>";
-    }
-    let pricesHTML = `
+      function generatePricesTableHTML(prices) {
+        if (!prices || prices.length === 0) {
+          return "<p>No prices found for this location.</p>";
+        }
+        let pricesHTML = `
         <h4>Prices:</h4>
         <div>
           <table>
@@ -302,82 +301,84 @@
               </tr>
             </thead>
             <tbody>`;
-    prices.forEach(price => {
-      pricesHTML += generatePriceRowHTML(price);
-    });
-    return pricesHTML + `</tbody></table></div>`;
-  }
+        prices.forEach(price => {
+          pricesHTML += generatePriceRowHTML(price);
+        });
+        return pricesHTML + `</tbody></table></div>`;
+      }
 
-  function getMarkerColor(markerCount, priceCount) {
-    const ratio = priceCount / markerCount;
-    const colorScale = chroma.scale("RdYlGn").padding(0.15).domain([0, 50]);
-    return ratio > 0 ? colorScale(ratio).hex() : "#666666";
-  }
+      function getMarkerColor(markerCount, priceCount) {
+        const ratio = priceCount / markerCount;
+        const colorScale = chroma.scale("RdYlGn").padding(0.15).domain([0, 50]);
+        return ratio > 0 ? colorScale(ratio).hex() : "#666666";
+      }
 
-  function iconCreateFunction(cluster) {
-    const markers = cluster.getAllChildMarkers();
-    const markerCount = markers.length;
-    const priceCount = markers.reduce((sum, marker) => sum + (marker.options.price_count || 0), 0);
-    return makeIcon(markerCount, priceCount);
-  }
+      function iconCreateFunction(cluster) {
+        const markers = cluster.getAllChildMarkers();
+        const markerCount = markers.length;
+        const priceCount = markers.reduce((sum, marker) => sum + (marker.options.price_count || 0), 0);
+        return makeIcon(markerCount, priceCount);
+      }
 
-  function makeIcon(markerCount, priceCount) {
-    const html = `<div style="background-color:${getMarkerColor(markerCount, priceCount)};">
+      function makeIcon(markerCount, priceCount) {
+        const html = `<div style="background-color:${getMarkerColor(markerCount, priceCount)};">
       <span class="marker-count">${markerCount}</span>
       <span class="price-count">${priceCount}</span>
       </div>`;
-    return L.divIcon({
-      className: "custom-marker",
-      html: html,
-      iconSize: L.point(40, 40),
-      iconAnchor: L.point(20, 20),
-      popupAnchor: L.point(0, -20)
-    });
-  }
+        return L.divIcon({
+          className: "custom-marker",
+          html: html,
+          iconSize: L.point(40, 40),
+          iconAnchor: L.point(20, 20),
+          popupAnchor: L.point(0, -20)
+        });
+      }
 
-  function createMarkers(locations) {
-    markersLayer.clearLayers();
-    locations.forEach(location => {
-      const lat = location.osm_lat;
-      const lon = location.osm_lon;
-      if (!lat || !lon) return;
-      const priceCount = location.price_count || 0;
-      const marker = L.marker([lat, lon], { icon: makeIcon(1, priceCount), price_count: priceCount });
-      marker.on("click", async () => {
-        const popup = L.popup()
-          .setLatLng([lat, lon])
-          .setContent(`${generateLocationInfoHTML(location)}<p>Loading prices...</p>`)
-          .openOn(map);
+      function createMarkers(locations) {
+        markersLayer.clearLayers();
+        locations.forEach(location => {
+          const lat = location.osm_lat;
+          const lon = location.osm_lon;
+          if (!lat || !lon) return;
+          const priceCount = location.price_count || 0;
+          const marker = L.marker([lat, lon], { icon: makeIcon(1, priceCount), price_count: priceCount });
+          marker.on("click", async () => {
+            const popup = L.popup()
+              .setLatLng([lat, lon])
+              .setContent(`${generateLocationInfoHTML(location)}<p>Loading prices...</p>`)
+              .openOn(map);
 
-        const pricesData = await fetchLocationPrices(location.id);
-        popup.setContent(`${generateLocationInfoHTML(location)}${generatePricesTableHTML(pricesData.items)}`);
-      });
-      markersLayer.addLayer(marker);
-    });
-  }
+            const pricesData = await fetchLocationPrices(location.id);
+            popup.setContent(`${generateLocationInfoHTML(location)}${generatePricesTableHTML(pricesData.items)}`);
+          });
+          markersLayer.addLayer(marker);
+        });
+      }
 
-  async function main(reload) {
-    if (localStorage.length === 0 || reload) {
-      clearLocationsFromStorage();
-      await fetchAndSaveLocations();
-    }
-    const locations = getLocationsFromStorage();
-    createMarkers(locations);
-    map.on("moveend", saveMapState);
-    map.on("zoomend", saveMapState);
-  }
-  const viewedInfoModal = localStorage.getItem("viewedInfoModal");
-  if (!viewedInfoModal) {
-    openInfoModal();
-  } else {
-    closeInfoModal();
-  }
-  main();
+      async function main(reload) {
+        if (localStorage.length === 0 || reload) {
+          clearLocationsFromStorage();
+          await fetchAndSaveLocations();
+        }
+        const locations = getLocationsFromStorage();
+        createMarkers(locations);
+        map.on("moveend", saveMapState);
+        map.on("zoomend", saveMapState);
+      }
+      const viewedInfoModal = localStorage.getItem("viewedInfoModal");
+      if (!viewedInfoModal) {
+        openInfoModal();
+      } else {
+        closeInfoModal();
+      }
+      main();
 
-  window.onclick = function (event) {
-    const modal = document.getElementById("info-modal");
-    if (event.target === modal) {
-      closeInfoModal();
-    }
-  };
-</script>
+      window.onclick = function (event) {
+        const modal = document.getElementById("info-modal");
+        if (event.target === modal) {
+          closeInfoModal();
+        }
+      };
+    </script>
+  </body>
+</html>
